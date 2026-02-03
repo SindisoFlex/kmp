@@ -22,26 +22,23 @@ export default function ServiceList() {
     };
 
     useEffect(() => {
-        fetchServices();
+        // Favoring stable demo data for Phase 1 to avoid unresolved Supabase placeholders
+        const demoData: Service[] = [
+            { id: 'srv-1', title: 'Photography', description: 'Professional shoots for events, weddings, and products.', base_price: 1500, requires_location: true },
+            { id: 'srv-2', title: 'Videography', description: 'High-quality cinematic production and editing.', base_price: 3500, requires_location: true },
+            { id: 'srv-3', title: 'Web & App Development', description: 'Functional, high-performance digital solutions.', base_price: 8500, requires_location: false },
+            { id: 'srv-4', title: 'AI Training', description: 'Future-ready AI skills for individuals and teams.', base_price: 2500, requires_location: false },
+            { id: 'srv-5', title: 'Graphic Design', description: 'Visual identity, branding, and marketing collateral.', base_price: 1200, requires_location: false },
+            { id: 'srv-6', title: 'Printing', description: 'Large scale and precision printing services.', base_price: 950, requires_location: true },
+            { id: 'srv-7', title: 'Digital Marketing', description: 'Strategic growth through SEO, Ads, and Social Media.', base_price: 4500, requires_location: false }
+        ];
+
+        setServices(demoData);
+        setLoading(false);
     }, []);
 
     const fetchServices = async () => {
-        try {
-            const { data } = await supabase.from('services').select('*').eq('active', true);
-            if (data && data.length > 0) {
-                setServices(data);
-            } else {
-                setServices([
-                    { id: 'srv-1', title: 'Photography', description: 'Professional shoots for events, weddings, and products.', base_price: 1500, requires_location: true },
-                    { id: 'srv-3', title: 'Web & App Development', description: 'Functional, high-performance digital solutions.', base_price: 8500, requires_location: false },
-                    { id: 'srv-4', title: 'AI Training', description: 'Future-ready AI skills for individuals and teams.', base_price: 2500, requires_location: false }
-                ]);
-            }
-        } catch (error) {
-            console.error("Error fetching services:", error);
-        } finally {
-            setLoading(false);
-        }
+        // Mocked out to favor demo stability
     };
 
     if (loading) return <div className="p-10 text-center animate-pulse text-gray-500 font-mono text-[10px] tracking-[0.3em]">SYNCHRONIZING SERVICES...</div>;
@@ -58,6 +55,8 @@ export default function ServiceList() {
         );
     }
 
+    const serviceArray = Array.isArray(services) ? services : [];
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="space-y-2">
@@ -69,8 +68,8 @@ export default function ServiceList() {
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-                {services.map((service: Service) => {
-                    const Icon = iconMap[service.title] || Camera;
+                {serviceArray.length > 0 ? serviceArray.map((service: Service) => {
+                    const Icon = service?.title ? (iconMap[service.title] || Camera) : Camera;
                     return (
                         <div
                             key={service.id}
@@ -99,7 +98,11 @@ export default function ServiceList() {
                             </div>
                         </div>
                     );
-                })}
+                }) : (
+                    <div className="p-12 text-center text-gray-600 bg-gray-950/50 rounded-[2.5rem] border border-gray-900 border-dashed">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em]">No services available in this sector</p>
+                    </div>
+                )}
             </div>
         </div>
     );

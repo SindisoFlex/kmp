@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { BookingProvider } from './context/BookingContext';
 import RoleBasedRoute from './components/auth/RoleBasedRoute';
 
 // Public Pages
@@ -29,55 +30,57 @@ import ServiceList from './pages/customer/services/ServiceList';
 function App() {
     return (
         <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/services" element={<Services />} />
-                    <Route path="/gallery" element={<Gallery />} />
-                    <Route path="/login" element={<CustomerLogin />} />
-                    <Route path="/register" element={<Register />} />
+            <BookingProvider>
+                <BrowserRouter>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={<Home />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/services" element={<Services />} />
+                        <Route path="/gallery" element={<Gallery />} />
+                        <Route path="/login" element={<CustomerLogin />} />
+                        <Route path="/register" element={<Register />} />
 
-                    {/* Portal Login Routes (Private Links) */}
-                    <Route path="/staff/login" element={<StaffLogin portalRole="staff" />} />
-                    <Route path="/freelancer/login" element={<StaffLogin portalRole="freelancer" />} />
-                    <Route path="/admin/login" element={<StaffLogin portalRole="admin" />} />
+                        {/* Portal Login Routes (Private Links) */}
+                        <Route path="/staff/login" element={<StaffLogin portalRole="staff" />} />
+                        <Route path="/freelancer/login" element={<StaffLogin portalRole="freelancer" />} />
+                        <Route path="/admin/login" element={<StaffLogin portalRole="admin" />} />
 
-                    {/* Protected Admin Routes */}
-                    <Route element={<RoleBasedRoute allowedRoles={['admin']} />}>
-                        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-                        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    </Route>
-
-                    {/* Protected Staff Routes */}
-                    <Route element={<RoleBasedRoute allowedRoles={['staff', 'admin']} />}>
-                        <Route path="/staff" element={<Navigate to="/staff/dashboard" replace />} />
-                        <Route path="/staff/dashboard" element={<StaffDashboard />} />
-                    </Route>
-
-                    {/* Protected Freelancer Routes */}
-                    <Route element={<RoleBasedRoute allowedRoles={['freelancer', 'admin']} />}>
-                        <Route path="/freelancer" element={<Navigate to="/freelancer/dashboard" replace />} />
-                        <Route path="/freelancer/dashboard" element={<FreelancerDashboard />} />
-                    </Route>
-
-                    {/* Protected Customer Routes */}
-                    <Route element={<RoleBasedRoute allowedRoles={['customer', 'admin']} />}>
-                        <Route path="/dashboard" element={<CustomerDashboard />}>
-                            <Route index element={<Navigate to="/dashboard/book" replace />} />
-                            <Route path="book" element={<ServiceList />} />
-                            <Route path="bookings" element={<MyBookings />} />
-                            <Route path="gallery" element={<MyFiles />} />
-                            <Route path="messages" element={<Messages />} />
-                            <Route path="profile" element={<Profile />} />
+                        {/* Protected Admin Routes */}
+                        <Route element={<RoleBasedRoute allowedRoles={['admin']} />}>
+                            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                            <Route path="/admin/dashboard" element={<AdminDashboard />} />
                         </Route>
-                    </Route>
 
-                    {/* Default Redirect */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </BrowserRouter>
+                        {/* Protected Staff Routes */}
+                        <Route element={<RoleBasedRoute allowedRoles={['staff', 'admin']} />}>
+                            <Route path="/staff" element={<Navigate to="/staff/dashboard" replace />} />
+                            <Route path="/staff/dashboard" element={<StaffDashboard />} />
+                        </Route>
+
+                        {/* Protected Freelancer Routes */}
+                        <Route element={<RoleBasedRoute allowedRoles={['freelancer', 'admin']} />}>
+                            <Route path="/freelancer" element={<Navigate to="/freelancer/dashboard" replace />} />
+                            <Route path="/freelancer/dashboard" element={<FreelancerDashboard />} />
+                        </Route>
+
+                        {/* Protected Customer Routes */}
+                        <Route element={<RoleBasedRoute allowedRoles={['customer', 'admin']} />}>
+                            <Route path="/dashboard" element={<CustomerDashboard />}>
+                                <Route index element={<Navigate to="/dashboard/book" replace />} />
+                                <Route path="book" element={<ServiceList />} />
+                                <Route path="bookings" element={<MyBookings />} />
+                                <Route path="gallery" element={<MyFiles />} />
+                                <Route path="messages" element={<Messages />} />
+                                <Route path="profile" element={<Profile />} />
+                            </Route>
+                        </Route>
+
+                        {/* Default Redirect */}
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </BrowserRouter>
+            </BookingProvider>
         </AuthProvider>
     );
 }

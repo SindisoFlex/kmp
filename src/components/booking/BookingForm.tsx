@@ -28,11 +28,22 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
     const { user, updatePoints } = useAuth();
     const { addBooking } = useBookings();
 
+    // Safety Check: If service is missing, don't crash the entire tree
+    if (!service) {
+        console.warn("BookingForm: Missing service prop.");
+        return (
+            <div className="p-8 text-center text-gray-500 bg-gray-900 rounded-[2.5rem] border border-gray-800">
+                <p className="text-xs font-black uppercase tracking-widest">System Error: Service Data Unreachable</p>
+                <button onClick={onCancel} className="mt-4 text-red-500 text-[10px] font-bold uppercase underline">Return to Selector</button>
+            </div>
+        );
+    }
+
     // Form State
     const [address, setAddress] = useState('');
     const [coords, setCoords] = useState<{ lat: number, lng: number } | undefined>();
     const [virtualLink, setVirtualLink] = useState('');
-    const [meetingType, setMeetingType] = useState<'physical' | 'virtual'>(service.requires_location ? 'physical' : 'virtual');
+    const [meetingType, setMeetingType] = useState<'physical' | 'virtual'>(service?.requires_location ? 'physical' : 'virtual');
     const [loading, setLoading] = useState(false);
     const [isDetecting, setIsDetecting] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -49,20 +60,22 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
     // Rewards State
     const [usePoints, setUsePoints] = useState(false);
     const [discountAmount, setDiscountAmount] = useState(0);
-    const [finalPrice, setFinalPrice] = useState(service.base_price);
+    const [finalPrice, setFinalPrice] = useState(service?.base_price || 0);
 
     useEffect(() => {
+        if (!service) return;
         if (usePoints && user) {
-            const maxDiscount = service.base_price * 0.3;
-            const pointsValue = user.points * 0.1; // 1 token = R10
+            const basePrice = service.base_price || 0;
+            const maxDiscount = basePrice * 0.3;
+            const pointsValue = (user.points || 0) * 0.1; // 1 token = R10
             const actualDiscount = Math.min(maxDiscount, pointsValue);
             setDiscountAmount(actualDiscount);
-            setFinalPrice(service.base_price - actualDiscount);
+            setFinalPrice(basePrice - actualDiscount);
         } else {
             setDiscountAmount(0);
-            setFinalPrice(service.base_price);
+            setFinalPrice(service?.base_price || 0);
         }
-    }, [usePoints, user, service.base_price]);
+    }, [usePoints, user, service]);
 
     // Handle Mock Auto-suggest with implicit geocoding
     const handleAddressChange = (val: string) => {
