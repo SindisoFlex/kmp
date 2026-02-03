@@ -1,51 +1,88 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { UserRole } from '../../types';
 
-export default function StaffLogin() {
+interface StaffLoginProps {
+    portalRole: UserRole;
+}
+
+export default function StaffLogin({ portalRole }: StaffLoginProps) {
     const { debugLogin } = useAuth();
     const navigate = useNavigate();
 
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        alert("This would authenticate against the staff/admin user table.");
+    const portalNames = {
+        staff: 'Staff Portal',
+        freelancer: 'Freelancer Network',
+        admin: 'Global Admin Console',
+        customer: 'Customer Portal'
     };
 
-    const handleTestLogin = (role: 'admin' | 'staff' | 'freelancer') => {
-        debugLogin(role);
-        if (role === 'admin') navigate('/admin');
-        else if (role === 'staff') navigate('/staff');
-        else if (role === 'freelancer') navigate('/freelancer');
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        alert(`Authenticating ${portalRole} credentials against the secure internal table...`);
+    };
+
+    const handleTestLogin = () => {
+        debugLogin(portalRole);
+        if (portalRole === 'admin') navigate('/admin');
+        else if (portalRole === 'staff') navigate('/staff');
+        else if (portalRole === 'freelancer') navigate('/freelancer');
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white border-t-4 border-red-600">
-            <div className="bg-gray-900 p-8 rounded-lg shadow-2xl w-full max-w-md border border-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white p-6 relative">
+            {/* Scanned Background Effect for Portals */}
+            <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+
+            <div className="z-10 w-full max-w-md bg-gray-900 border border-gray-800 rounded-3xl p-8 shadow-2xl overflow-hidden shadow-red-900/10">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
+
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Internal Portal</h2>
-                    <p className="text-gray-400 text-sm">Authorized Personnel Only</p>
+                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-500 mb-2">Internal Access Only</p>
+                    <h2 className="text-3xl font-bold tracking-tighter text-white italic underline decoration-red-600 decoration-4 underline-offset-8">
+                        {portalNames[portalRole]}
+                    </h2>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Staff ID / Email</label>
-                        <input type="email" className="w-full p-3 rounded bg-gray-800 border border-gray-700 text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition" placeholder="admin@kasilam.com" />
+                <form onSubmit={handleLogin} className="space-y-5">
+                    <div className="space-y-1">
+                        <label className="text-[9px] uppercase font-bold tracking-widest text-gray-500 ml-1">Secure ID</label>
+                        <input
+                            type="email"
+                            className="w-full bg-gray-950 border border-gray-800 p-4 rounded-2xl focus:border-red-600 outline-none transition text-sm text-gray-300"
+                            placeholder={`${portalRole}@kmp.internal`}
+                        />
                     </div>
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Password</label>
-                        <input type="password" className="w-full p-3 rounded bg-gray-800 border border-gray-700 text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition" placeholder="••••••••" />
+                    <div className="space-y-1">
+                        <label className="text-[9px] uppercase font-bold tracking-widest text-gray-500 ml-1">Access Pass</label>
+                        <input
+                            type="password"
+                            className="w-full bg-gray-950 border border-gray-800 p-4 rounded-2xl focus:border-red-600 outline-none transition text-sm text-gray-300"
+                            placeholder="••••••••"
+                        />
                     </div>
-                    <button type="submit" className="w-full bg-red-600 py-3 rounded font-bold hover:bg-red-700 transition shadow-lg shadow-red-900/20">
-                        Access Dashboard
+
+                    <button type="submit" className="w-full bg-red-600 py-4 rounded-2xl font-bold uppercase tracking-widest hover:bg-red-700 transition shadow-xl shadow-red-900/40 text-sm italic">
+                        Authorize Access
                     </button>
 
-                    <div className="pt-6 mt-6 border-t border-gray-800">
-                        <p className="text-xs text-center text-gray-500 mb-4">Internal Testing Access</p>
-                        <div className="grid grid-cols-1 gap-3">
-                            <button type="button" onClick={() => handleTestLogin('admin')} className="w-full py-2 rounded border border-gray-700 hover:bg-gray-800 text-xs text-gray-300">Login as Admin</button>
-                            <button type="button" onClick={() => handleTestLogin('staff')} className="w-full py-2 rounded border border-gray-700 hover:bg-gray-800 text-xs text-gray-300">Login as Staff</button>
-                            <button type="button" onClick={() => handleTestLogin('freelancer')} className="w-full py-2 rounded border border-gray-700 hover:bg-gray-800 text-xs text-gray-300">Login as Freelancer</button>
-                        </div>
+                    <div className="relative py-4 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-800"></div></div>
+                        <span className="relative bg-gray-900 px-4 text-[9px] text-gray-500 uppercase tracking-widest font-bold">Diagnostics</span>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={handleTestLogin}
+                        className="w-full border border-gray-800 py-3 rounded-2xl text-[10px] hover:bg-gray-850 transition font-bold tracking-[0.2em] text-gray-400 group"
+                    >
+                        BYPASS AUTH & <span className="text-red-500 group-hover:underline">ENTER DASHBOARD</span>
+                    </button>
+
+                    <p className="text-[9px] text-center text-gray-600 pt-4 leading-relaxed font-mono uppercase">
+                        Protocol: Secure Socket Layer v4.0 <br />
+                        KMP Security Engine 2026.02
+                    </p>
                 </form>
             </div>
         </div>

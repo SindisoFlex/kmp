@@ -53,9 +53,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (error || !data) {
                 // Fallback for demo/initialization if user record doesn't exist yet
-                // Defaulting to 'admin' for the test drive convenience, usually should be 'customer'
                 console.warn("User profile not found, using mock profile for dev");
-                setUser({ id: userId, email, role: 'admin', full_name: 'Test User' });
+                setUser({
+                    id: userId,
+                    email,
+                    role: 'admin',
+                    full_name: 'Test User',
+                    points: 100, // New users get 10% starter discount points (simulation)
+                    total_spent: 0
+                });
             } else {
                 setUser(data as UserProfile);
             }
@@ -77,7 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: 'debug-user-123',
             email: `debug-${role}@kasilam.com`,
             role: role,
-            full_name: `Debug ${role.charAt(0).toUpperCase() + role.slice(1)}`
+            full_name: `Debug ${role.charAt(0).toUpperCase() + role.slice(1)}`,
+            points: role === 'customer' ? 100 : 0, // 100 points = R1000 value or 10% starter
+            total_spent: 0
         };
         setUser(mockUser);
         setLoading(false);

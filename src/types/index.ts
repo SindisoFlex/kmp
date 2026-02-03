@@ -5,6 +5,8 @@ export interface UserProfile {
     email: string;
     role: UserRole;
     full_name: string;
+    points: number;
+    total_spent: number;
 }
 
 export interface Service {
