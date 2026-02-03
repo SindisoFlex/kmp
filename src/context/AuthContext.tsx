@@ -57,10 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser({
                     id: userId,
                     email,
-                    role: 'admin',
-                    full_name: 'Test User',
-                    points: 100, // New users get 10% starter discount points (simulation)
-                    total_spent: 0
+                    role: 'customer',
+                    full_name: 'Sibusiso Gumede', // South African Demo Name
+                    points: 1250, // Demo point balance
+                    total_spent: 12500
                 });
             } else {
                 setUser(data as UserProfile);

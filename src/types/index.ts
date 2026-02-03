@@ -23,6 +23,7 @@ export interface Booking {
     service_id: string;
     freelancer_id?: string;
     status: 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
+    meeting_type: 'physical' | 'virtual';
     location_address?: string;
     scheduled_date: string;
     created_at: string;
