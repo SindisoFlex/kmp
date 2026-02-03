@@ -6,15 +6,15 @@ interface AuthContextType {
     loading: boolean;
     signIn: (email: string, password?: string) => Promise<void>;
     signOut: () => Promise<void>;
-    debugLogin: (role: UserRole) => void;
+    debugLogin: (id: string) => void;
     updatePoints: (amount: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Demo Clients Data
-const DEMO_CLIENTS: Record<UserRole, UserProfile> = {
-    customer: {
+const DEMO_CLIENTS: Record<string, UserProfile> = {
+    'client-001': {
         id: 'client-001',
         email: 'sibusiso@kmp.co.za',
         role: 'customer',
@@ -22,9 +22,17 @@ const DEMO_CLIENTS: Record<UserRole, UserProfile> = {
         points: 1250,
         total_spent: 12500
     },
-    staff: { id: 'staff-001', email: 'operations@kmp.co.za', role: 'staff', full_name: 'Lerato Staff', points: 0, total_spent: 0 },
-    freelancer: { id: 'free-001', email: 'creative@kmp.co.za', role: 'freelancer', full_name: 'David Freelancer', points: 0, total_spent: 0 },
-    admin: { id: 'admin-001', email: 'master@kmp.co.za', role: 'admin', full_name: 'KMP Admin', points: 0, total_spent: 0 }
+    'client-002': {
+        id: 'client-002',
+        email: 'nomvula@kmp.co.za',
+        role: 'customer',
+        full_name: 'Nomvula Zulu',
+        points: 450,
+        total_spent: 4500
+    },
+    'staff': { id: 'staff-001', email: 'operations@kmp.co.za', role: 'staff', full_name: 'Lerato Staff', points: 0, total_spent: 0 },
+    'freelancer': { id: 'free-001', email: 'creative@kmp.co.za', role: 'freelancer', full_name: 'David Freelancer', points: 0, total_spent: 0 },
+    'admin': { id: 'admin-001', email: 'master@kmp.co.za', role: 'admin', full_name: 'KMP Admin', points: 0, total_spent: 0 }
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -50,8 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('kmp_user');
     };
 
-    const debugLogin = (role: UserRole) => {
-        const userData = DEMO_CLIENTS[role];
+    const debugLogin = (id: string) => {
+        const userData = DEMO_CLIENTS[id] || DEMO_CLIENTS.customer;
         setUser(userData);
         localStorage.setItem('kmp_user', JSON.stringify(userData));
     };

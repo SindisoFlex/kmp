@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import { Service } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useBookings } from '../../context/BookingContext';
-import { Gift, Calendar, MapPin, Calculator, Check, Monitor, Map, Navigation, Clock, ChevronDown, Sparkles, ChevronUp } from 'lucide-react';
+import {
+    Gift, Calendar, MapPin, Calculator, Check, Monitor, Map,
+    Navigation, Clock, ChevronDown, Sparkles, ChevronUp,
+    Search, Link as LinkIcon, Info
+} from 'lucide-react';
 
 interface BookingFormProps {
     service: Service;
@@ -10,15 +14,28 @@ interface BookingFormProps {
     onSuccess: () => void;
 }
 
+// Mock address suggestions for Antigravity demo
+const MOCK_SUGGESTIONS = [
+    "123 Vilakazi St, Orlando West, Soweto",
+    "Sandton City, Rivonia Rd, Sandhurst",
+    "Cape Town CBD, Long Street",
+    "Durban North, uMhlanga Rocks Dr",
+    "Gqeberha, Summerstrand View",
+    "Pretoria East, Menlyn Main"
+];
+
 export default function BookingForm({ service, onCancel, onSuccess }: BookingFormProps) {
     const { user, updatePoints } = useAuth();
     const { addBooking } = useBookings();
 
     // Form State
     const [address, setAddress] = useState('');
-    const [meetingType, setMeetingType] = useState<'physical' | 'virtual'>('physical');
+    const [virtualLink, setVirtualLink] = useState('');
+    const [meetingType, setMeetingType] = useState<'physical' | 'virtual'>(service.requires_location ? 'physical' : 'virtual');
     const [loading, setLoading] = useState(false);
     const [isDetecting, setIsDetecting] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
     // Advanced Date/Time State
     const [day, setDay] = useState(new Date().getDate());
@@ -46,12 +63,30 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
         }
     }, [usePoints, user, service.base_price]);
 
+    // Handle Mock Auto-suggest
+    const handleAddressChange = (val: string) => {
+        setAddress(val);
+        if (val.length > 2) {
+            const filtered = MOCK_SUGGESTIONS.filter(s => s.toLowerCase().includes(val.toLowerCase()));
+            setFilteredSuggestions(filtered);
+            setShowSuggestions(filtered.length > 0);
+        } else {
+            setShowSuggestions(false);
+        }
+    };
+
+    const selectSuggestion = (s: string) => {
+        setAddress(s);
+        setShowSuggestions(false);
+    };
+
     const handleGPS = () => {
         setIsDetecting(true);
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition((pos) => {
-                setAddress(`GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (Current Location)`);
+                setAddress(`GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
                 setIsDetecting(false);
+                setShowSuggestions(false);
             }, () => {
                 alert("Location access denied.");
                 setIsDetecting(false);
@@ -74,7 +109,8 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
                 service_id: service.id,
                 status: 'pending',
                 meeting_type: meetingType,
-                location_address: meetingType === 'physical' ? address : 'Virtual Meeting Space',
+                location_address: meetingType === 'physical' ? address : undefined,
+                virtual_link: meetingType === 'virtual' ? virtualLink : undefined,
                 scheduled_date: scheduledDate,
                 created_at: new Date().toISOString()
             });
@@ -94,12 +130,12 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
 
             <header className="flex justify-between items-start relative z-10">
                 <div className="space-y-1">
-                    <p className="text-[10px] font-black text-red-600 uppercase tracking-[0.3em]">Phase 1 Production</p>
+                    <p className="text-[10px] font-black text-red-600 uppercase tracking-[0.3em]">Antigravity Protocol</p>
                     <h3 className="text-3xl font-black tracking-tighter italic uppercase">{service.title}</h3>
                 </div>
                 <div className="text-right">
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mb-1">Total Stake</p>
-                    <p className="text-2xl font-black italic tracking-tighter">R{finalPrice.toFixed(2)}</p>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mb-1">Total Valuation</p>
+                    <p className="text-2xl font-black italic tracking-tighter shadow-sm">R{finalPrice.toLocaleString()}</p>
                 </div>
             </header>
 
@@ -107,7 +143,7 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
                 {/* Meeting Type Toggle */}
                 <div className="space-y-3">
                     <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 ml-1">Engagement Mode</label>
-                    <div className="bg-gray-950 p-1.5 rounded-[2rem] border border-gray-800 flex gap-1.5">
+                    <div className="bg-gray-950 p-1.5 rounded-[2rem] border border-gray-800 flex gap-1.5 shadow-inner">
                         <button
                             type="button"
                             onClick={() => setMeetingType('physical')}
@@ -125,63 +161,63 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
                     </div>
                 </div>
 
-                {/* Advanced Date/Time Picker */}
+                {/* Date/Time Selector Area */}
                 <div className="space-y-4">
                     <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 ml-1 flex items-center gap-2">
-                        <Calendar size={12} /> Temporal Alignment
+                        <Calendar size={12} /> Production Schedule
                     </label>
 
                     <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-gray-950 border border-gray-800 rounded-2xl p-3 text-center flex flex-col items-center">
-                            <button type="button" onClick={() => setDay(d => Math.min(31, d + 1))}><ChevronUp size={12} /></button>
-                            <span className="font-bold text-lg">{day}</span>
-                            <button type="button" onClick={() => setDay(d => Math.max(1, d - 1))}><ChevronDown size={12} /></button>
-                            <span className="text-[7px] text-gray-600 font-black uppercase">Day</span>
+                        <div className="bg-gray-950 border border-gray-800 rounded-3xl p-4 text-center flex flex-col items-center group/item hover:border-red-600/30 transition-colors shadow-inner">
+                            <button type="button" onClick={() => setDay(d => Math.min(31, d + 1))} className="text-gray-700 hover:text-red-500"><ChevronUp size={16} /></button>
+                            <span className="font-black text-2xl tracking-tighter py-1">{day}</span>
+                            <button type="button" onClick={() => setDay(d => Math.max(1, d - 1))} className="text-gray-700 hover:text-red-500"><ChevronDown size={16} /></button>
+                            <span className="text-[7px] text-gray-600 font-black uppercase tracking-widest mt-1">Day</span>
                         </div>
-                        <div className="bg-gray-950 border border-gray-800 rounded-2xl p-3 text-center flex flex-col items-center">
-                            <button type="button" onClick={() => setMonth(m => Math.min(11, m + 1))}><ChevronUp size={12} /></button>
-                            <span className="font-bold text-lg">{month + 1}</span>
-                            <button type="button" onClick={() => setMonth(m => Math.max(0, m - 1))}><ChevronDown size={12} /></button>
-                            <span className="text-[7px] text-gray-600 font-black uppercase">Month</span>
+                        <div className="bg-gray-950 border border-gray-800 rounded-3xl p-4 text-center flex flex-col items-center group/item hover:border-red-600/30 transition-colors shadow-inner">
+                            <button type="button" onClick={() => setMonth(m => Math.min(11, m + 1))} className="text-gray-700 hover:text-red-500"><ChevronUp size={16} /></button>
+                            <span className="font-black text-2xl tracking-tighter py-1 text-red-500">{month + 1}</span>
+                            <button type="button" onClick={() => setMonth(m => Math.max(0, m - 1))} className="text-gray-700 hover:text-red-500"><ChevronDown size={16} /></button>
+                            <span className="text-[7px] text-gray-600 font-black uppercase tracking-widest mt-1">Month</span>
                         </div>
-                        <div className="bg-gray-950 border border-gray-800 rounded-2xl p-3 text-center flex flex-col items-center">
-                            <button type="button" onClick={() => setYear(y => y + 1)}><ChevronUp size={12} /></button>
-                            <span className="font-bold text-lg text-red-500">{year}</span>
-                            <button type="button" onClick={() => setYear(y => y - 1)}><ChevronDown size={12} /></button>
-                            <span className="text-[7px] text-gray-600 font-black uppercase">Year</span>
+                        <div className="bg-gray-950 border border-gray-800 rounded-3xl p-4 text-center flex flex-col items-center group/item hover:border-red-600/30 transition-colors shadow-inner">
+                            <button type="button" onClick={() => setYear(y => y + 1)} className="text-gray-700 hover:text-red-500"><ChevronUp size={16} /></button>
+                            <span className="font-black text-xl tracking-tighter py-1">{year}</span>
+                            <button type="button" onClick={() => setYear(y => y - 1)} className="text-gray-700 hover:text-red-500"><ChevronDown size={16} /></button>
+                            <span className="text-[7px] text-gray-600 font-black uppercase tracking-widest mt-1">Year</span>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-3 pt-2">
-                        <div className="bg-gray-950 border border-gray-800 rounded-2xl p-3 text-center flex flex-col items-center">
-                            <button type="button" onClick={() => setHour(h => h === 12 ? 1 : h + 1)}><ChevronUp size={10} /></button>
-                            <span className="font-bold text-lg">{hour}</span>
-                            <button type="button" onClick={() => setHour(h => h === 1 ? 12 : h - 1)}><ChevronDown size={10} /></button>
+                    <div className="grid grid-cols-4 gap-3">
+                        <div className="bg-gray-950 border border-gray-800 rounded-3xl p-4 text-center flex flex-col items-center shadow-inner">
+                            <button type="button" onClick={() => setHour(h => h === 12 ? 1 : h + 1)} className="text-gray-700 hover:text-red-500"><ChevronUp size={14} /></button>
+                            <span className="font-black text-xl">{hour}</span>
+                            <button type="button" onClick={() => setHour(h => h === 1 ? 12 : h - 1)} className="text-gray-700 hover:text-red-500"><ChevronDown size={14} /></button>
                         </div>
-                        <div className="bg-gray-950 border border-gray-800 rounded-2xl p-3 text-center flex flex-col items-center">
-                            <button type="button" onClick={() => setMinute(m => m === 59 ? 0 : m + 1)}><ChevronUp size={10} /></button>
-                            <span className="font-bold text-lg">{minute < 10 ? `0${minute}` : minute}</span>
-                            <button type="button" onClick={() => setMinute(m => m === 0 ? 59 : m - 1)}><ChevronDown size={10} /></button>
+                        <div className="bg-gray-950 border border-gray-800 rounded-3xl p-4 text-center flex flex-col items-center shadow-inner">
+                            <button type="button" onClick={() => setMinute(m => m === 59 ? 0 : m + 1)} className="text-gray-700 hover:text-red-500"><ChevronUp size={14} /></button>
+                            <span className="font-black text-xl">{minute < 10 ? `0${minute}` : minute}</span>
+                            <button type="button" onClick={() => setMinute(m => m === 0 ? 59 : m - 1)} className="text-gray-700 hover:text-red-500"><ChevronDown size={14} /></button>
                         </div>
                         <button
                             type="button"
                             onClick={() => setPeriod(period === 'AM' ? 'PM' : 'AM')}
-                            className="bg-gray-950 border border-gray-800 rounded-2xl p-3 text-center hover:border-red-600 transition-colors"
+                            className="bg-gray-950 border border-gray-800 rounded-3xl p-4 text-center hover:bg-red-600 transition-all group shadow-inner"
                         >
-                            <span className="block text-[8px] text-gray-600 font-black uppercase">Period</span>
-                            <span className="font-bold text-lg text-red-500">{period}</span>
+                            <span className="block text-[7px] text-gray-600 group-hover:text-red-200 font-black uppercase tracking-widest mb-1">Unit</span>
+                            <span className="font-black text-xl text-red-500 group-hover:text-white uppercase">{period}</span>
                         </button>
-                        <div className="bg-gray-950/20 border border-gray-900 rounded-2xl flex items-center justify-center p-3">
-                            <Clock size={24} className="text-gray-800" />
+                        <div className="bg-red-600/5 border border-red-600/10 rounded-3xl flex items-center justify-center p-4">
+                            <Clock size={28} className="text-red-600/30" />
                         </div>
                     </div>
                 </div>
 
-                {/* Location with GPS Support */}
-                <div className={`space-y-2 transition-all duration-500 ${meetingType === 'virtual' ? 'opacity-30 pointer-events-none scale-95 blur-sm' : 'opacity-100'}`}>
+                {/* Location Input with Auto-Suggest & GPS */}
+                <div className={`space-y-4 transition-all duration-500 ${meetingType === 'virtual' ? 'hidden' : 'block animate-in slide-in-from-top-4'}`}>
                     <div className="flex justify-between items-center ml-1">
                         <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 flex items-center gap-2">
-                            <MapPin size={12} /> Spatial Coordinates
+                            <MapPin size={12} /> Geospatial Coordinates
                         </label>
                         <button
                             type="button"
@@ -189,66 +225,123 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
                             disabled={isDetecting}
                             className="text-[9px] font-black uppercase tracking-widest text-red-500 flex items-center gap-1.5 hover:underline disabled:opacity-50"
                         >
-                            {isDetecting ? 'Syncing...' : 'Detect GPS'} <Navigation size={10} />
+                            {isDetecting ? 'Querying...' : 'Force GPS'} <Navigation size={10} />
                         </button>
                     </div>
-                    <textarea
-                        className="w-full bg-gray-950 border border-gray-800 p-5 rounded-[2rem] focus:border-red-600 outline-none text-sm transition-all h-24 placeholder:text-gray-800 shadow-inner"
-                        placeholder="System waiting for location address..."
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                    />
+
+                    <div className="relative">
+                        <div className="absolute top-5 left-5 text-gray-700">
+                            <Search size={18} />
+                        </div>
+                        <input
+                            type="text"
+                            className="w-full bg-gray-950 border border-gray-800 py-5 pl-14 pr-6 rounded-[2rem] focus:border-red-600 outline-none text-sm font-bold placeholder:text-gray-800 shadow-inner"
+                            placeholder="Type physical address for production..."
+                            value={address}
+                            onChange={(e) => handleAddressChange(e.target.value)}
+                            onFocus={() => address.length > 2 && setShowSuggestions(true)}
+                        />
+
+                        {/* Auto-suggest Dropdown */}
+                        {showSuggestions && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden z-50 shadow-2xl animate-in fade-in slide-in-from-top-2">
+                                {filteredSuggestions.map((s, idx) => (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => selectSuggestion(s)}
+                                        className="w-full text-left p-4 hover:bg-red-600 hover:text-white text-[10px] font-bold uppercase tracking-widest border-b border-gray-800 last:border-0 transition-colors"
+                                    >
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Rewards Hub */}
-                <div className="bg-gray-950/50 border border-gray-800 rounded-[2.5rem] p-6 space-y-6 shadow-inner relative overflow-hidden group">
+                {/* Virtual Link / Notes field */}
+                <div className={`space-y-4 transition-all duration-500 ${meetingType === 'physical' ? 'hidden' : 'block animate-in slide-in-from-top-4'}`}>
+                    <label className="text-[10px] uppercase font-black tracking-widest text-gray-500 ml-1 flex items-center gap-2">
+                        <LinkIcon size={12} /> Remote Connectivity
+                    </label>
+                    <div className="relative">
+                        <div className="absolute top-5 left-5 text-gray-700">
+                            <Monitor size={18} />
+                        </div>
+                        <input
+                            type="text"
+                            className="w-full bg-gray-950 border border-gray-800 py-5 pl-14 pr-6 rounded-[2rem] focus:border-red-600 outline-none text-sm font-bold placeholder:text-gray-800 shadow-inner"
+                            placeholder="Video Link (Zoom/Meet) or Remote Notes..."
+                            value={virtualLink}
+                            onChange={(e) => setVirtualLink(e.target.value)}
+                        />
+                    </div>
+                    <div className="bg-red-600/5 border border-red-600/10 p-4 rounded-2xl flex gap-3 text-red-500/80">
+                        <Info size={16} className="shrink-0" />
+                        <p className="text-[9px] font-black uppercase tracking-widest leading-relaxed">System will auto-generate production room if link is left empty.</p>
+                    </div>
+                </div>
+
+                {/* Rewards Consumption Hub */}
+                <div className="bg-gray-950/50 border border-gray-800 rounded-[2.5rem] p-8 space-y-6 shadow-2xl relative overflow-hidden group">
                     <div className="flex justify-between items-center relative z-10">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-red-600/10 rounded-xl flex items-center justify-center text-red-500">
-                                <Gift size={18} />
+                            <div className="w-10 h-10 bg-red-600/10 rounded-2xl flex items-center justify-center text-red-500 border border-red-600/20">
+                                <Gift size={20} />
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">KMP Rewards Pool</span>
+                            <div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Inventory Status</span>
+                                <p className="text-xs font-mono font-black text-white italic">{user?.points} KMP Tokens Available</p>
+                            </div>
                         </div>
-                        <span className="text-xs font-mono font-black text-red-500 italic">{user?.points} Tokens</span>
                     </div>
 
                     <button
                         type="button"
                         onClick={() => setUsePoints(!usePoints)}
-                        className={`w-full py-5 px-6 rounded-[2rem] border flex items-center justify-between transition-all relative overflow-hidden ${usePoints ? 'bg-green-600/10 border-green-600/50 shadow-lg shadow-green-900/10' : 'bg-gray-900/50 border-gray-800 hover:border-gray-700'}`}
+                        className={`w-full py-6 px-8 rounded-[2.2rem] border flex items-center justify-between transition-all relative overflow-hidden ${usePoints ? 'bg-green-600/10 border-green-600/50 shadow-xl shadow-green-900/10' : 'bg-gray-900/50 border-gray-800 hover:border-gray-700 shadow-inner'}`}
                     >
-                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shrink-0">
-                            {usePoints ? <Check size={16} className="text-green-500" /> : <Calculator size={16} className="text-gray-500" />}
-                            Apply Max Yield (30%)
+                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shrink-0">
+                            {usePoints ? <Check size={18} className="text-green-500" /> : <Calculator size={18} className="text-gray-600" />}
+                            Initialize Max Yield (30%)
                         </span>
                         {usePoints && (
-                            <span className="text-sm font-black text-green-500 italic animate-in slide-in-from-right-2">
-                                -R{discountAmount.toFixed(0)}
-                            </span>
+                            <div className="flex flex-col items-end animate-in slide-in-from-right-4">
+                                <span className="text-lg font-black text-green-500 italic leading-none">-R{discountAmount.toLocaleString()}</span>
+                                <span className="text-[8px] font-bold text-green-600 uppercase tracking-widest">Saved</span>
+                            </div>
                         )}
                     </button>
 
                     {!usePoints && (
-                        <div className="flex items-center gap-2 px-2 text-[9px] font-bold text-gray-600 uppercase tracking-widest">
-                            <Sparkles size={10} /> Earn {Math.floor(service.base_price / 100)} tokens on confirmation
+                        <div className="flex items-center gap-2 px-2 text-[9px] font-black text-gray-700 uppercase tracking-[0.2em]">
+                            <Sparkles size={12} className="text-gray-800" /> Secure {Math.floor(service.base_price / 100)} tokens upon confirmation
                         </div>
                     )}
                 </div>
 
-                <div className="flex gap-4 pt-4 border-t border-gray-800 border-dashed">
+                {/* Actions */}
+                <div className="flex gap-4 pt-6 border-t border-gray-800 border-dashed">
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="flex-1 py-5 rounded-[2rem] bg-gray-950 border border-gray-800 text-gray-600 font-black uppercase tracking-widest text-[10px] hover:text-white transition-all"
+                        className="flex-1 py-6 rounded-[2.2rem] bg-gray-950 border border-gray-800 text-gray-600 font-black uppercase tracking-[0.2em] text-[10px] hover:text-white hover:border-gray-600 transition-all shadow-lg active:scale-95"
                     >
-                        Abort
+                        Terminate
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex-[2] py-5 rounded-[2rem] bg-red-600 text-white font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-red-900/40 hover:bg-red-700 transition-all disabled:opacity-50 relative overflow-hidden"
+                        className="flex-[2] py-6 rounded-[2.2rem] bg-red-600 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-red-900/60 hover:bg-red-700 hover:scale-[1.02] transition-all disabled:opacity-50 relative overflow-hidden active:scale-95"
                     >
-                        {loading ? 'Securing...' : 'Lock Production Order'}
+                        {loading ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"></div>
+                                <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                                <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                            </div>
+                        ) : 'Lock Production Sequence'}
                     </button>
                 </div>
             </form>

@@ -25,6 +25,7 @@ export interface Booking {
     status: 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
     meeting_type: 'physical' | 'virtual';
     location_address?: string;
+    virtual_link?: string;
     scheduled_date: string;
     created_at: string;
 }

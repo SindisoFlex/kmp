@@ -27,6 +27,16 @@ export function BookingProvider({ children }: { children: ReactNode }) {
                     location_address: 'Soweto, Gauteng Market',
                     scheduled_date: '2026-02-15T14:00:00Z',
                     created_at: new Date().toISOString()
+                },
+                {
+                    id: 'KMP-ZV702',
+                    customer_id: 'client-002',
+                    service_id: 'srv-4',
+                    status: 'pending',
+                    meeting_type: 'virtual',
+                    virtual_link: 'https://meet.google.com/kmp-session',
+                    scheduled_date: '2026-02-20T10:00:00Z',
+                    created_at: new Date().toISOString()
                 }
             ];
             setBookings(demo);

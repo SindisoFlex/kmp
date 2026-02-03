@@ -40,15 +40,26 @@ export default function Login() {
                     <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
 
                     <div className="space-y-6">
-                        <div className="bg-gray-950 p-6 rounded-3xl border border-gray-800 hover:border-red-600 transition-all cursor-pointer group/btn" onClick={() => handleDebugLogin('customer')}>
+                        <div className="bg-gray-950 p-6 rounded-3xl border border-gray-800 hover:border-red-600 transition-all cursor-pointer group/btn mb-3" onClick={() => handleDebugLogin('client-001')}>
                             <div className="flex justify-between items-center mb-4">
                                 <div className="w-10 h-10 bg-red-600/10 rounded-xl flex items-center justify-center border border-red-600/30 group-hover/btn:bg-red-600 group-hover/btn:text-white transition-colors">
                                     <Sparkles size={20} className="text-red-500 group-hover/btn:text-white" />
                                 </div>
                                 <ArrowRight size={18} className="text-gray-700 group-hover/btn:text-red-500 transform group-hover/btn:translate-x-1 transition-all" />
                             </div>
-                            <h3 className="text-lg font-black uppercase tracking-tight italic">Secure Client Access</h3>
-                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">Continue to production dashboard, bookings, and cultural media vault.</p>
+                            <h3 className="text-lg font-black uppercase tracking-tight italic">Sibusiso Gumede</h3>
+                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">Lead Production Client (1250 T)</p>
+                        </div>
+
+                        <div className="bg-gray-950 p-6 rounded-3xl border border-gray-800 hover:border-red-600 transition-all cursor-pointer group/btn" onClick={() => handleDebugLogin('client-002')}>
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="w-10 h-10 bg-red-600/10 rounded-xl flex items-center justify-center border border-red-600/30 group-hover/btn:bg-red-600 group-hover/btn:text-white transition-colors">
+                                    <Sparkles size={20} className="text-red-500 group-hover/btn:text-white" />
+                                </div>
+                                <ArrowRight size={18} className="text-gray-700 group-hover/btn:text-red-500 transform group-hover/btn:translate-x-1 transition-all" />
+                            </div>
+                            <h3 className="text-lg font-black uppercase tracking-tight italic">Nomvula Zulu</h3>
+                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">Standard Account (450 T)</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-3">
