@@ -14,14 +14,14 @@ interface BookingFormProps {
     onSuccess: () => void;
 }
 
-// Mock address suggestions for Antigravity demo
-const MOCK_SUGGESTIONS = [
-    "123 Vilakazi St, Orlando West, Soweto",
-    "Sandton City, Rivonia Rd, Sandhurst",
-    "Cape Town CBD, Long Street",
-    "Durban North, uMhlanga Rocks Dr",
-    "Gqeberha, Summerstrand View",
-    "Pretoria East, Menlyn Main"
+// Mock address suggestions with geocode data for Antigravity demo
+const MOCK_DATA = [
+    { address: "123 Vilakazi St, Orlando West, Soweto", lat: -26.2386, lng: 27.9099 },
+    { address: "Sandton City, Rivonia Rd, Sandhurst", lat: -26.1076, lng: 28.0567 },
+    { address: "Cape Town CBD, Long Street", lat: -33.9249, lng: 18.4241 },
+    { address: "Durban North, uMhlanga Rocks Dr", lat: -29.7397, lng: 31.0658 },
+    { address: "Gqeberha, Summerstrand View", lat: -33.9833, lng: 25.6667 },
+    { address: "Pretoria East, Menlyn Main", lat: -25.7828, lng: 28.2758 }
 ];
 
 export default function BookingForm({ service, onCancel, onSuccess }: BookingFormProps) {
@@ -30,12 +30,13 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
 
     // Form State
     const [address, setAddress] = useState('');
+    const [coords, setCoords] = useState<{ lat: number, lng: number } | undefined>();
     const [virtualLink, setVirtualLink] = useState('');
     const [meetingType, setMeetingType] = useState<'physical' | 'virtual'>(service.requires_location ? 'physical' : 'virtual');
     const [loading, setLoading] = useState(false);
     const [isDetecting, setIsDetecting] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+    const [filteredData, setFilteredData] = useState<typeof MOCK_DATA>([]);
 
     // Advanced Date/Time State
     const [day, setDay] = useState(new Date().getDate());
@@ -63,20 +64,21 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
         }
     }, [usePoints, user, service.base_price]);
 
-    // Handle Mock Auto-suggest
+    // Handle Mock Auto-suggest with implicit geocoding
     const handleAddressChange = (val: string) => {
         setAddress(val);
         if (val.length > 2) {
-            const filtered = MOCK_SUGGESTIONS.filter(s => s.toLowerCase().includes(val.toLowerCase()));
-            setFilteredSuggestions(filtered);
+            const filtered = MOCK_DATA.filter(s => s.address.toLowerCase().includes(val.toLowerCase()));
+            setFilteredData(filtered);
             setShowSuggestions(filtered.length > 0);
         } else {
             setShowSuggestions(false);
         }
     };
 
-    const selectSuggestion = (s: string) => {
-        setAddress(s);
+    const selectSuggestion = (item: typeof MOCK_DATA[0]) => {
+        setAddress(item.address);
+        setCoords({ lat: item.lat, lng: item.lng });
         setShowSuggestions(false);
     };
 
@@ -84,7 +86,8 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
         setIsDetecting(true);
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition((pos) => {
-                setAddress(`GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+                setAddress(`GPS Position [Verified]`);
+                setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
                 setIsDetecting(false);
                 setShowSuggestions(false);
             }, () => {
@@ -110,6 +113,7 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
                 status: 'pending',
                 meeting_type: meetingType,
                 location_address: meetingType === 'physical' ? address : undefined,
+                location_coordinates: meetingType === 'physical' ? coords : undefined,
                 virtual_link: meetingType === 'virtual' ? virtualLink : undefined,
                 scheduled_date: scheduledDate,
                 created_at: new Date().toISOString()
@@ -245,14 +249,17 @@ export default function BookingForm({ service, onCancel, onSuccess }: BookingFor
                         {/* Auto-suggest Dropdown */}
                         {showSuggestions && (
                             <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden z-50 shadow-2xl animate-in fade-in slide-in-from-top-2">
-                                {filteredSuggestions.map((s, idx) => (
+                                {filteredData.map((item, idx) => (
                                     <button
                                         key={idx}
                                         type="button"
-                                        onClick={() => selectSuggestion(s)}
+                                        onClick={() => selectSuggestion(item)}
                                         className="w-full text-left p-4 hover:bg-red-600 hover:text-white text-[10px] font-bold uppercase tracking-widest border-b border-gray-800 last:border-0 transition-colors"
                                     >
-                                        {s}
+                                        <div className="flex justify-between items-center">
+                                            <span>{item.address}</span>
+                                            <span className="text-[7px] opacity-70 underline">Lat: {item.lat}</span>
+                                        </div>
                                     </button>
                                 ))}
                             </div>
