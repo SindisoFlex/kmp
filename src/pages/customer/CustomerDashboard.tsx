@@ -22,17 +22,17 @@ export default function CustomerDashboard() {
     return (
         <div className="bg-gray-950 min-h-screen text-white pb-24">
             {/* Header */}
-            <header className="p-4 flex justify-between items-center border-b border-gray-800 bg-gray-900 sticky top-0 z-10">
-                <div>
-                    <h1 className="text-xl font-bold text-red-600">KMP</h1>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest">Kasilam Media Production</p>
-                </div>
+            <header className="p-6 flex justify-between items-center border-b border-gray-900 bg-black/90 backdrop-blur-3xl sticky top-0 z-10">
                 <div className="flex items-center gap-4">
-                    <div className="text-right">
-                        <p className="text-xs font-bold">{user?.full_name}</p>
-                        <p className="text-[10px] text-yellow-500">{user?.points || 0} Points</p>
+                    <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center font-black italic text-lg shadow-lg shadow-red-900/40">K</div>
+                    <div>
+                        <h1 className="text-xs font-black uppercase tracking-[0.3em] text-gray-500">Antigravity Hub</h1>
+                        <p className="text-[10px] text-red-600 font-bold uppercase tracking-widest">{user?.full_name?.split(' ')[0]}</p>
                     </div>
-                    <button onClick={() => signOut()} className="text-[10px] bg-gray-800 px-2 py-1 rounded border border-gray-700 hover:bg-red-900 transition font-bold">EXIT</button>
+                </div>
+                <div className="flex items-center gap-3 bg-gray-900/50 px-4 py-2 rounded-2xl border border-gray-800">
+                    <span className="text-[10px] font-mono font-black text-red-500 italic">{user?.points || 0} T</span>
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                 </div>
             </header>
 

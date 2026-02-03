@@ -1,114 +1,77 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UserProfile, UserRole } from '../types';
-import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
-    session: Session | null;
     user: UserProfile | null;
     loading: boolean;
+    signIn: (email: string, password?: string) => Promise<void>;
     signOut: () => Promise<void>;
-    isAdmin: boolean;
-    isStaff: boolean;
-    isFreelancer: boolean;
     debugLogin: (role: UserRole) => void;
+    updatePoints: (amount: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Demo Clients Data
+const DEMO_CLIENTS: Record<UserRole, UserProfile> = {
+    customer: {
+        id: 'client-001',
+        email: 'sibusiso@kmp.co.za',
+        role: 'customer',
+        full_name: 'Sibusiso Gumede',
+        points: 1250,
+        total_spent: 12500
+    },
+    staff: { id: 'staff-001', email: 'operations@kmp.co.za', role: 'staff', full_name: 'Lerato Staff', points: 0, total_spent: 0 },
+    freelancer: { id: 'free-001', email: 'creative@kmp.co.za', role: 'freelancer', full_name: 'David Freelancer', points: 0, total_spent: 0 },
+    admin: { id: 'admin-001', email: 'master@kmp.co.za', role: 'admin', full_name: 'KMP Admin', points: 0, total_spent: 0 }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [session, setSession] = useState<Session | null>(null);
     const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            if (session) fetchProfile(session.user.id, session.user.email!);
-            else setLoading(false);
-        });
-
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            if (session) fetchProfile(session.user.id, session.user.email!);
-            else {
-                setUser(null);
-                setLoading(false);
-            }
-        });
-
-        return () => subscription.unsubscribe();
+        // Simple session persistence for demo
+        const saved = localStorage.getItem('kmp_user');
+        if (saved) setUser(JSON.parse(saved));
+        setLoading(false);
     }, []);
 
-    const fetchProfile = async (userId: string, email: string) => {
-        try {
-            // In a real app, we fetch from the 'users' table
-            const { data, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', userId)
-                .single();
-
-            if (error || !data) {
-                // Fallback for demo/initialization if user record doesn't exist yet
-                console.warn("User profile not found, using mock profile for dev");
-                setUser({
-                    id: userId,
-                    email,
-                    role: 'customer',
-                    full_name: 'Sibusiso Gumede', // South African Demo Name
-                    points: 1250, // Demo point balance
-                    total_spent: 12500
-                });
-            } else {
-                setUser(data as UserProfile);
-            }
-        } catch (error) {
-            console.error("Error fetching profile:", error);
-        } finally {
-            setLoading(false);
-        }
+    const signIn = async (email: string) => {
+        const found = Object.values(DEMO_CLIENTS).find(c => c.email === email);
+        const userData = found || { ...DEMO_CLIENTS.customer, email, full_name: email.split('@')[0] };
+        setUser(userData);
+        localStorage.setItem('kmp_user', JSON.stringify(userData));
     };
 
     const signOut = async () => {
-        await supabase.auth.signOut();
         setUser(null);
-        setSession(null);
+        localStorage.removeItem('kmp_user');
     };
 
     const debugLogin = (role: UserRole) => {
-        const mockUser: UserProfile = {
-            id: 'debug-user-123',
-            email: `debug-${role}@kasilam.com`,
-            role: role,
-            full_name: `Debug ${role.charAt(0).toUpperCase() + role.slice(1)}`,
-            points: role === 'customer' ? 100 : 0, // 100 points = R1000 value or 10% starter
-            total_spent: 0
-        };
-        setUser(mockUser);
-        setLoading(false);
+        const userData = DEMO_CLIENTS[role];
+        setUser(userData);
+        localStorage.setItem('kmp_user', JSON.stringify(userData));
     };
 
-    const value = {
-        session,
-        user,
-        loading,
-        signOut,
-        isAdmin: user?.role === 'admin',
-        isStaff: user?.role === 'staff',
-        isFreelancer: user?.role === 'freelancer',
-        debugLogin,
+    const updatePoints = (amount: number) => {
+        if (!user) return;
+        const updated = { ...user, points: user.points + amount };
+        setUser(updated);
+        localStorage.setItem('kmp_user', JSON.stringify(updated));
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={{ user, loading, signIn, signOut, debugLogin, updatePoints }}>
+            {children}
+        </AuthContext.Provider>
+    );
 }
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
+    if (!context) throw new Error('useAuth must be used within an AuthProvider');
     return context;
 };

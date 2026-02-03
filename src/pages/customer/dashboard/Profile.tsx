@@ -34,7 +34,7 @@ export default function Profile() {
                     <div className="bg-gray-950 p-6 rounded-3xl border border-gray-800 group hover:border-red-600 transition-colors">
                         <p className="text-[9px] text-gray-600 uppercase font-black tracking-[0.2em] mb-3">Rewards Hub</p>
                         <div className="flex items-center gap-2">
-                            <span className="text-3xl font-black text-white italic tracking-tighter">{user?.points} T</span>
+                            <span className="text-3xl font-black text-red-500 italic tracking-tighter">{user?.points || 0} T</span>
                             <div className="bg-red-600/10 p-1.5 rounded-lg border border-red-600/30">
                                 <Gift size={16} className="text-red-500" />
                             </div>
