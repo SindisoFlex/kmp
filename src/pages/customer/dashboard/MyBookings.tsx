@@ -60,7 +60,7 @@ export default function MyBookings() {
                                         <Icon size={24} className="text-gray-500 group-hover:text-red-500 transition-colors" />
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
-                                        <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full border shadow-sm ${booking.status === 'confirmed' || booking.status === 'accepted'
+                                        <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full border shadow-sm ${booking.status === 'accepted'
                                                 ? 'bg-green-500/10 border-green-500/30 text-green-500'
                                                 : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 animate-pulse'
                                             }`}>
