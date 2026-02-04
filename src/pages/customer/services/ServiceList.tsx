@@ -41,15 +41,24 @@ export default function ServiceList() {
         // Mocked out to favor demo stability
     };
 
-    if (loading) return <div className="p-10 text-center animate-pulse text-gray-500 font-mono text-[10px] tracking-[0.3em]">SYNCHRONIZING SERVICES...</div>;
+    if (loading) return (
+        <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
+            <div className="w-12 h-12 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin"></div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-600">Synchronizing Production Core</p>
+        </div>
+    );
 
+    // 🛡️ RECOVERY UI FOR BLANK SCREEN PREVENTION
     if (selectedService) {
         return (
-            <div className="animate-in fade-in duration-500">
+            <div className="animate-in fade-in zoom-in-95 duration-500">
                 <BookingForm
                     service={selectedService}
                     onCancel={() => setSelectedService(null)}
-                    onSuccess={() => setSelectedService(null)}
+                    onSuccess={() => {
+                        setSelectedService(null);
+                        // Refresh effect or success state can go here
+                    }}
                 />
             </div>
         );
@@ -58,52 +67,63 @@ export default function ServiceList() {
     const serviceArray = Array.isArray(services) ? services : [];
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="space-y-2">
-                <h2 className="text-3xl font-black tracking-tighter italic">WELCOME, <span className="text-red-500">{user?.full_name?.split(' ')[0].toUpperCase()}</span></h2>
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Production Queue: ONLINE</p>
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <header className="space-y-2">
+                <p className="text-[10px] font-black text-red-600 uppercase tracking-[0.4em]">Resource Selector</p>
+                <div className="flex justify-between items-end">
+                    <h2 className="text-4xl font-black tracking-tighter italic uppercase text-white">
+                        Welcome, <span className="text-red-500">{user?.full_name?.split(' ')[0] || 'Client'}</span>
+                    </h2>
+                    <div className="bg-gray-900 px-4 py-2 rounded-full border border-gray-800 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Active System</span>
+                    </div>
                 </div>
-            </div>
+            </header>
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-5">
                 {serviceArray.length > 0 ? serviceArray.map((service: Service) => {
                     const Icon = service?.title ? (iconMap[service.title] || Camera) : Camera;
                     return (
                         <div
-                            key={service.id}
+                            key={service.id || Math.random().toString()}
                             onClick={() => setSelectedService(service)}
-                            className="bg-gray-900 border border-gray-800 p-5 rounded-[2rem] hover:border-red-600/50 transition-all duration-300 cursor-pointer group flex items-center gap-5 shadow-lg active:scale-95"
+                            className="group bg-gray-950 border border-gray-900 p-6 rounded-[2.5rem] hover:border-red-600/50 transition-all duration-300 cursor-pointer flex items-center gap-6 shadow-2xl hover:shadow-red-600/5 active:scale-[0.98]"
                         >
-                            <div className="w-14 h-14 bg-gray-950 rounded-2xl flex items-center justify-center border border-gray-800 group-hover:bg-red-600/10 group-hover:border-red-600/30 transition-colors">
-                                <Icon size={24} className="text-gray-400 group-hover:text-red-500 transition-colors" />
+                            <div className="w-16 h-16 bg-gray-900 rounded-[1.5rem] flex items-center justify-center border border-gray-800 group-hover:bg-red-600 group-hover:border-red-500 transition-all duration-300 shadow-inner">
+                                <Icon size={28} className="text-gray-500 group-hover:text-white transition-colors" />
                             </div>
 
                             <div className="flex-1">
-                                <div className="flex justify-between items-start mb-1">
-                                    <h3 className="text-sm font-bold tracking-tight uppercase">{service.title}</h3>
-                                    <p className="text-xs font-black text-white italic">R{service.base_price}</p>
+                                <div className="flex justify-between items-center mb-1">
+                                    <h3 className="text-lg font-black tracking-tight uppercase italic text-white group-hover:text-red-500 transition-colors">{service.title || 'Unknown Asset'}</h3>
+                                    <p className="text-sm font-black text-gray-400 font-mono tracking-tighter">R{(service.base_price || 0).toLocaleString()}</p>
                                 </div>
-                                <p className="text-[10px] text-gray-500 font-light leading-relaxed mb-2 pr-6">{service.description}</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[8px] bg-gray-950 px-2 py-0.5 rounded-full text-gray-400 border border-gray-800 uppercase tracking-widest font-bold">
-                                        {service.requires_location ? '📍 On-Site' : '🌐 Remote'}
+                                <p className="text-[11px] text-gray-600 font-bold leading-relaxed mb-3 line-clamp-1">{service.description || 'No description available for this deployment.'}</p>
+                                <div className="flex items-center gap-4">
+                                    <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${service.requires_location ? 'border-blue-900/50 text-blue-500 bg-blue-500/5' : 'border-purple-900/50 text-purple-500 bg-purple-500/5'}`}>
+                                        {service.requires_location ? '📍 Physical Deployment' : '🌐 Virtual Sync'}
                                     </span>
+                                    <span className="text-[8px] font-black text-gray-800 uppercase tracking-widest group-hover:text-red-900 transition-colors">Yield: +{Math.floor((service.base_price || 0) / 100)} T</span>
                                 </div>
                             </div>
 
-                            <div className="bg-gray-950 p-2 rounded-full border border-gray-800 group-hover:bg-red-600 group-hover:border-red-600 group-hover:text-white text-gray-600 transition-all">
-                                <ArrowRight size={14} />
+                            <div className="w-10 h-10 rounded-full border border-gray-900 flex items-center justify-center text-gray-800 group-hover:text-red-500 group-hover:border-red-600/30 transition-all">
+                                <ChevronRight size={20} />
                             </div>
                         </div>
                     );
                 }) : (
-                    <div className="p-12 text-center text-gray-600 bg-gray-950/50 rounded-[2.5rem] border border-gray-900 border-dashed">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em]">No services available in this sector</p>
+                    <div className="p-20 text-center space-y-4 bg-gray-950/50 border-2 border-dashed border-gray-900 rounded-[3rem]">
+                        <Info className="mx-auto text-gray-800" size={32} />
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-700">No active resources in this sector</p>
                     </div>
                 )}
             </div>
+
+            <footer className="pt-10 text-center">
+                <p className="text-[8px] font-black text-gray-800 uppercase tracking-[0.8em]">Kasilam Media Production // Production Core v1.2</p>
+            </footer>
         </div>
     );
 }
